@@ -81,19 +81,36 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
     cairo_line_to(cr, SECTION_WIDTH, 0);
     cairo_stroke(cr);
 
+    PangoLayout *layout = pango_cairo_create_layout(cr);
+    PangoFontDescription *desc = pango_font_description_from_string("Sans Bold 8");
+    pango_layout_set_font_description(layout, desc);
+    cairo_set_source_rgb(cr, 0, 0, 0); // black
+
     char *line = NULL;
     size_t len = 0;
-    if (getline(&line, &len, fp) != -1) {
-        PangoLayout *layout = pango_cairo_create_layout(cr);
-        PangoFontDescription *desc = pango_font_description_from_string("Sans Bold 8");
 
+    if (getline(&line, &len, fp) != -1) {
         cairo_translate(cr, 10, 10);
         pango_layout_set_text(layout, line, -1);
-        pango_layout_set_font_description(layout, desc);
-        cairo_set_source_rgb(cr, 0, 0, 0); // black
         pango_cairo_show_layout(cr, layout);
     }
 
+    cairo_translate(cr, 0, 10);
+    pango_font_description_set_size(desc, 6 * PANGO_SCALE);
+    pango_font_description_set_weight(desc, PANGO_WEIGHT_MEDIUM);
+    pango_layout_set_font_description(layout, desc);
+
+    while (getline(&line, &len, fp) != -1) {
+        if (strncmp(line, "---", 3) == 0) {
+            break;
+        }
+        cairo_translate(cr, 0, 10);
+        pango_layout_set_text(layout, line, -1);
+        pango_cairo_show_layout(cr, layout);
+    }
+
+    g_object_unref(layout);
+    pango_font_description_free(desc);
     cairo_restore(cr);
 }
 

@@ -30,5 +30,9 @@ indiqué. Exemple:
 
 ## Format du fichier source
 
-Le format du fichier source est en développement. Pour l'instant, c'est un
-titre par ligne.
+Le format du fichier source est en développement.
+
+Ce fichier est séparé en section. Chaque section se termine par une ligne "---".
+
+La première ligne de chaque section est le titre de la section. Le reste est le
+contenu.
