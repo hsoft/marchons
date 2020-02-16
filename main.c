@@ -70,7 +70,7 @@ draw_header(cairo_t *cr, char *label)
 }
 
 static void
-draw_section(cairo_t *cr, int x, int y, int height)
+draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
 {
     cairo_save(cr);
     cairo_translate(cr, x, y);
@@ -80,29 +80,64 @@ draw_section(cairo_t *cr, int x, int y, int height)
     cairo_line_to(cr, 0, 0);
     cairo_line_to(cr, SECTION_WIDTH, 0);
     cairo_stroke(cr);
+
+    char *line = NULL;
+    size_t len = 0;
+    if (getline(&line, &len, fp) != -1) {
+        PangoLayout *layout = pango_cairo_create_layout(cr);
+        PangoFontDescription *desc = pango_font_description_from_string("Sans Bold 8");
+
+        cairo_translate(cr, 10, 10);
+        pango_layout_set_text(layout, line, -1);
+        pango_layout_set_font_description(layout, desc);
+        cairo_set_source_rgb(cr, 0, 0, 0); // black
+        pango_cairo_show_layout(cr, layout);
+    }
+
     cairo_restore(cr);
 }
 
 int main(int argc, char **argv)
 {
     cairo_t *cr;
-    char *filename;
+    char *fnin, *fnout;
+    char label[255] = {0};
     cairo_status_t status;
     cairo_surface_t *surface;
 
     if (argc != 3)
     {
-        g_printerr ("Usage: marchons <nom-du-mois> <fichier-pdf>\n");
+        g_printerr("Usage: marchons <fichier-source> <fichier-pdf>\n");
         return 1;
     }
 
-    filename = argv[2];
+    fnin = argv[1];
+    fnout = argv[2];
 
-    surface = cairo_pdf_surface_create(filename, 792, 612);
+    FILE *fp = fopen(fnin, "r");
+    if (fp == NULL) {
+        g_printerr("Could not open '%s'\n", fnin);
+        return 1;
+    }
+
+    // Extract label from filename
+    char *s = strrchr(fnin, '/');
+    if (s == NULL) {
+        s = fnin;
+    } else {
+        s++;
+    }
+    strcpy(label, s);
+    s = strrchr(label, '.');
+    if (s != NULL) {
+        *s = '\0';
+    }
+
+    surface = cairo_pdf_surface_create(fnout, 792, 612);
     status = cairo_surface_status(surface);
     if (status != CAIRO_STATUS_SUCCESS)
     {
-        g_printerr("Could not save to '%s'\n", filename);
+        g_printerr("Could not save to '%s'\n", fnout);
         return 1;
     }
 
@@ -110,17 +145,16 @@ int main(int argc, char **argv)
 
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_paint(cr);
-    draw_header(cr, argv[1]);
-    draw_section(cr, PAGE_MARGIN, 120, 470);
+    draw_header(cr, label);
+    draw_section(cr, fp, PAGE_MARGIN, 120, 470);
 
     for (int i=1; i<4; i++) {
-        draw_section(cr, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
-        draw_section(cr, 190*i+PAGE_MARGIN, 320, 270);
+        draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
+        draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
     }
     cairo_destroy(cr);
-
-    status = cairo_surface_write_to_png(surface, filename);
     cairo_surface_destroy(surface);
+    fclose(fp);
 
     return 0;
 }

@@ -23,4 +23,12 @@ généré.
 
 ## Utilisation
 
-Rouler `./marchons dest.pdf` pour générer un PDF dans le fichier indiqué.
+Rouler `./marchons source.txt dest.pdf` pour générer un PDF dans le fichier
+indiqué. Exemple:
+
+    ./marchons "mois/Décembre 2019" dest.pdf
+
+## Format du fichier source
+
+Le format du fichier source est en développement. Pour l'instant, c'est un
+titre par ligne.
