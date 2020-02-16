@@ -36,3 +36,5 @@ Ce fichier est séparé en section. Chaque section se termine par une ligne "---
 
 La première ligne de chaque section est le titre de la section. Le reste est le
 contenu.
+
+On peut mettre du texte en gras en l'entourant de `*`, en italique avec `_`.

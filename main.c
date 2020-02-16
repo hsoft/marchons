@@ -6,6 +6,38 @@
 #define PAGE_MARGIN 25
 
 static void
+convert_markup(char *dest, const char *src)
+{
+    int bcount = 0;
+    int icount = 0;
+
+    while (*src) {
+        char c = *src;
+        if (c == '*') {
+            *dest = '<'; dest++;
+            if (bcount % 2) {
+                *dest = '/'; dest++;
+            }
+            *dest = 'b'; dest++;
+            *dest = '>'; dest++;
+            bcount++;
+        } else if (c == '_') {
+            *dest = '<'; dest++;
+            if (icount % 2) {
+                *dest = '/'; dest++;
+            }
+            *dest = 'i'; dest++;
+            *dest = '>'; dest++;
+            icount++;
+        } else {
+            *dest = c; dest++;
+        }
+        src++;
+    }
+    *dest = '\0';
+}
+
+static void
 draw_header(cairo_t *cr, char *label)
 {
     PangoLayout *layout;
@@ -104,9 +136,17 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
         if (strncmp(line, "---", 3) == 0) {
             break;
         }
+        PangoAttrList *attr_list;
+        char converted[1024];
+        char *todraw;
         cairo_translate(cr, 0, 10);
-        pango_layout_set_text(layout, line, -1);
+        convert_markup(converted, line);
+        pango_parse_markup(
+            converted, -1, 0, &attr_list, &todraw, NULL, NULL);
+        pango_layout_set_attributes(layout, attr_list);
+        pango_layout_set_text(layout, todraw, -1);
         pango_cairo_show_layout(cr, layout);
+        g_free(todraw);
     }
 
     g_object_unref(layout);

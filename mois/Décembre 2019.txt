@@ -1,7 +1,8 @@
 Calendrier
 Bonjour
-Allo
+    Allo
 Test
 ---
 Un autre titre
-contenu
+contenu *en bold*
+contenu _en italique_
