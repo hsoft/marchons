@@ -2,6 +2,9 @@
 #include <pango/pangocairo.h>
 #include <cairo-pdf.h>
 
+#define SECTION_WIDTH 170
+#define PAGE_MARGIN 25
+
 static void
 draw_header(cairo_t *cr, char *label)
 {
@@ -10,11 +13,13 @@ draw_header(cairo_t *cr, char *label)
     PangoAttrList *attr_list;
     char *todraw;
 
+    cairo_save(cr);
+
     layout = pango_cairo_create_layout(cr);
-    pango_layout_set_width(layout, 150 * PANGO_SCALE);
+    pango_layout_set_width(layout, SECTION_WIDTH * PANGO_SCALE);
 
     desc = pango_font_description_from_string("Sans Italic 6");
-    cairo_translate(cr, 20, 20);
+    cairo_translate(cr, PAGE_MARGIN, PAGE_MARGIN);
     pango_parse_markup(
         "Si tu veux aller <b>vite</b>, marche <b>seul</b>\nSi tu veux aller <b>loin</b>...",
         -1, 0, &attr_list, &todraw, NULL, NULL);
@@ -38,7 +43,7 @@ draw_header(cairo_t *cr, char *label)
     // wavy line
     cairo_translate(cr, 0, 22);
     cairo_move_to(cr, 0, 0);
-    cairo_rel_curve_to(cr, 50, -10, 100, 10, 150, 0);
+    cairo_rel_curve_to(cr, 50, -10, 100, 10, SECTION_WIDTH, 0);
     cairo_stroke(cr);
 
     cairo_translate(cr, 0, 20);
@@ -60,6 +65,22 @@ draw_header(cairo_t *cr, char *label)
 
     g_object_unref(layout);
     pango_font_description_free(desc);
+
+    cairo_restore(cr);
+}
+
+static void
+draw_section(cairo_t *cr, int x, int y, int height)
+{
+    cairo_save(cr);
+    cairo_translate(cr, x, y);
+    cairo_set_line_width(cr, 1);
+    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4); // light gray
+    cairo_move_to(cr, 0, height);
+    cairo_line_to(cr, 0, 0);
+    cairo_line_to(cr, SECTION_WIDTH, 0);
+    cairo_stroke(cr);
+    cairo_restore(cr);
 }
 
 int main(int argc, char **argv)
@@ -90,6 +111,12 @@ int main(int argc, char **argv)
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_paint(cr);
     draw_header(cr, argv[1]);
+    draw_section(cr, PAGE_MARGIN, 120, 470);
+
+    for (int i=1; i<4; i++) {
+        draw_section(cr, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
+        draw_section(cr, 190*i+PAGE_MARGIN, 320, 270);
+    }
     cairo_destroy(cr);
 
     status = cairo_surface_write_to_png(surface, filename);
