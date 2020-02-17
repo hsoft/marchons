@@ -127,10 +127,11 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
         pango_cairo_show_layout(cr, layout);
     }
 
-    cairo_translate(cr, 0, 10);
+    cairo_translate(cr, 0, 20);
     pango_font_description_set_size(desc, 6 * PANGO_SCALE);
     pango_font_description_set_weight(desc, PANGO_WEIGHT_MEDIUM);
     pango_layout_set_font_description(layout, desc);
+    pango_layout_set_width(layout, SECTION_WIDTH * PANGO_SCALE);
 
     while (getline(&line, &len, fp) != -1) {
         if (strncmp(line, "---", 3) == 0) {
@@ -139,13 +140,16 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
         PangoAttrList *attr_list;
         char converted[1024];
         char *todraw;
-        cairo_translate(cr, 0, 10);
         convert_markup(converted, line);
         pango_parse_markup(
             converted, -1, 0, &attr_list, &todraw, NULL, NULL);
         pango_layout_set_attributes(layout, attr_list);
         pango_layout_set_text(layout, todraw, -1);
         pango_cairo_show_layout(cr, layout);
+        // On fait -1 parce que la ligne se termine toujours par un \n qui
+        // augmente artificiellement le line count.
+        int lines = pango_layout_get_line_count(layout) - 1;
+        cairo_translate(cr, 0, 10 * lines);
         g_free(todraw);
     }
 
