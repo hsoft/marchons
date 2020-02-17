@@ -7,4 +7,4 @@ MYLDFLAGS = $(LDFLAGS) `pkg-config --libs $(PKGDEPS)`
 all: $(TARGET)
 
 $(TARGET): main.c
-	$(CC) $(MYCFLAGS) -o $@ $< -lm $(MYLDFLAGS)
+	$(CC) $(MYCFLAGS) -o $@ main.c -lm $(MYLDFLAGS)
