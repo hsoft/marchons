@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <math.h>
 #include <pango/pangocairo.h>
 #include <cairo-pdf.h>
@@ -101,9 +102,11 @@ draw_header(cairo_t *cr, char *label)
     cairo_restore(cr);
 }
 
-static void
+// Returns true if another section follows this one, false if not.
+static bool
 draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
 {
+    bool res = false;
     cairo_save(cr);
     cairo_translate(cr, x, y);
     cairo_set_line_width(cr, 1);
@@ -135,6 +138,7 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
 
     while (getline(&line, &len, fp) != -1) {
         if (strncmp(line, "---", 3) == 0) {
+            res = true;
             break;
         }
         PangoAttrList *attr_list;
@@ -156,6 +160,7 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
     g_object_unref(layout);
     pango_font_description_free(desc);
     cairo_restore(cr);
+    return res;
 }
 
 int main(int argc, char **argv)
@@ -165,6 +170,7 @@ int main(int argc, char **argv)
     char label[255] = {0};
     cairo_status_t status;
     cairo_surface_t *surface;
+    bool running = true;
 
     if (argc != 3)
     {
@@ -210,15 +216,29 @@ int main(int argc, char **argv)
     draw_section(cr, fp, PAGE_MARGIN, 120, 470);
 
     for (int i=1; i<4; i++) {
-        draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
-        draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
+        running = draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
+        if (!running) {
+            break;
+        }
+        running = draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
+        if (!running) {
+            break;
+        }
     }
 
-    cairo_show_page(cr);
+    if (running) {
+        cairo_show_page(cr);
 
-    for (int i=0; i<4; i++) {
-        draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
-        draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
+        for (int i=0; i<4; i++) {
+            running = draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
+            if (!running) {
+                break;
+            }
+            running = draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
+            if (!running) {
+                break;
+            }
+        }
     }
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
