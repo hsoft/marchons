@@ -128,7 +128,7 @@ draw_section(cairo_t *cr, FILE *fp, int x, int y, int height)
     }
 
     cairo_translate(cr, 0, 20);
-    pango_font_description_set_size(desc, 6 * PANGO_SCALE);
+    pango_font_description_set_size(desc, trunc(6.5 * PANGO_SCALE));
     pango_font_description_set_weight(desc, PANGO_WEIGHT_MEDIUM);
     pango_layout_set_font_description(layout, desc);
     pango_layout_set_width(layout, SECTION_WIDTH * PANGO_SCALE);
@@ -210,6 +210,13 @@ int main(int argc, char **argv)
     draw_section(cr, fp, PAGE_MARGIN, 120, 470);
 
     for (int i=1; i<4; i++) {
+        draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
+        draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
+    }
+
+    cairo_show_page(cr);
+
+    for (int i=0; i<4; i++) {
         draw_section(cr, fp, 190*i+PAGE_MARGIN, PAGE_MARGIN, 270);
         draw_section(cr, fp, 190*i+PAGE_MARGIN, 320, 270);
     }
