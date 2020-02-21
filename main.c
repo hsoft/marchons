@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 #include <pango/pangocairo.h>
 #include <cairo-pdf.h>
