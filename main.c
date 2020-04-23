@@ -13,10 +13,11 @@ convert_markup(char *dest, const char *src)
 {
     int bcount = 0;
     int icount = 0;
+    bool had_ws = true;
 
     while (*src) {
         char c = *src;
-        if (c == '*') {
+        if ((had_ws || (bcount % 2)) && (c == '*')) {
             *dest = '<'; dest++;
             if (bcount % 2) {
                 *dest = '/'; dest++;
@@ -24,7 +25,7 @@ convert_markup(char *dest, const char *src)
             *dest = 'b'; dest++;
             *dest = '>'; dest++;
             bcount++;
-        } else if (c == '_') {
+        } else if ((had_ws || (icount % 2)) && (c == '_')) {
             *dest = '<'; dest++;
             if (icount % 2) {
                 *dest = '/'; dest++;
@@ -35,6 +36,7 @@ convert_markup(char *dest, const char *src)
         } else {
             *dest = c; dest++;
         }
+        had_ws = c <= ' ';
         src++;
     }
     *dest = '\0';
